@@ -12,21 +12,21 @@ export class User {
   @Prop({ type: String, required: true, minlength: 6, maxlength: 20 })
   password!: string;
   @Prop({ type: String, enum: ['user', 'admin'], default: 'user' })
-  role!: string;
+  role?: string;
   @Prop({ type: String, default: '' })
-  avatarUrl!: string;
+  avatarUrl?: string;
   @Prop({ type: String, default: '' })
-  age!: string;
+  age?: string;
   @Prop({ type: String, default: '' })
-  address!: string;
+  address?: string;
   @Prop({ type: String, default: '' })
-  phone!: string;
+  phone?: string;
   @Prop({ type: Boolean, default: false })
-  isActive!: boolean;
+  isActive?: boolean;
   @Prop({ type: String, default: '' })
-  verificationToken!: string;
+  verificationToken?: string;
   @Prop({ type: String, enum: ['Male', 'Female'] })
-  gender!: string;
+  gender?: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
