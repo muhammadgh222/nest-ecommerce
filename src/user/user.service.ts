@@ -41,14 +41,21 @@ export class UserService {
   }
 
   async findAll(query) {
-    const { limit, skip, sort, name, email, role } = query;
+    const page = query.page || 1;
+    const limit = query.limit || 10;
+    const skip = (page - 1) * limit;
+
+    const filter: any = {};
+
+    if (query.search) {
+      filter.name = { $regex: query.search, $options: 'i' };
+    }
 
     const users = await this.userModel
-      .find()
+      .find(filter)
       .skip(skip)
       .limit(limit)
-      .sort(sort);
-    console.log(users);
+      .sort(query.sort || '-createdAt');
     return {
       status: 200,
       message: 'Users found successfully',

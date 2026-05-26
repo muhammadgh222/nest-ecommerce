@@ -16,6 +16,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthGuard } from './guard/auth.guard';
 import { Roles } from './decorator/roles.decorator';
 import { ParseMongoIdPipe } from 'src/common/parse.mongoId.pipe';
+import { PaginationDto } from './dto/pagination.dto';
 
 @Controller('user')
 @Roles('admin') // Only allow users with the 'admin' role to access this route
@@ -40,7 +41,7 @@ export class UserController {
   // @access private (admin only)
 
   @Get()
-  findAll(@Query() query) {
+  findAll(@Query() query: PaginationDto) {
     return this.userService.findAll(query); // Exclude the password field from the response
   }
 
