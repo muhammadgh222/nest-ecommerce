@@ -1,9 +1,14 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from './user.schema';
-import { Model } from 'mongoose';
+import { isValidObjectId, Model } from 'mongoose';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { CreateUserResponse } from './interface/userResponse.interface';
@@ -22,20 +27,34 @@ export class UserService {
 
     const password = await bcrypt.hash(createUserDto.password, 10);
 
-    const createdUser = {
+    const createdUser = await this.userModel.create({
       ...createUserDto,
       password,
       role: createUserDto.role || 'user',
-    };
+    });
+
     return {
       status: 201,
       message: 'User created successfully',
-      data: await this.userModel.create({ ...CreateUserDto, ...createdUser }),
+      data: createdUser,
     };
   }
 
-  findAll() {
-    return this.userModel.find().select('-password, -__v').exec(); // Exclude the password field from the response
+  async findAll(query) {
+    const { limit, skip, sort, name, email, role } = query;
+
+    const users = await this.userModel
+      .find()
+      .skip(skip)
+      .limit(limit)
+      .sort(sort);
+    console.log(users);
+    return {
+      status: 200,
+      message: 'Users found successfully',
+      length: users.length,
+      data: users,
+    };
   }
 
   async findOne(id: string) {
@@ -50,21 +69,22 @@ export class UserService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
-    const user = await this.userModel.findById(id).exec();
-    if (!user) {
-      throw new HttpException('User not found', 404);
+    const updateData = { ...updateUserDto };
+
+    if (updateData.password) {
+      updateData.password = await bcrypt.hash(updateData.password, 10);
     }
 
-    if (updateUserDto.password) {
-      updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
-    }
     const updatedUser = await this.userModel
-      .findByIdAndUpdate(
-        id,
-        { ...updateUserDto },
-        { new: true, select: '-password, -__v' },
-      )
-      .exec(); // Exclude the password field from the response
+      .findByIdAndUpdate(id, updateData, {
+        new: true,
+      })
+      .select('-password -__v')
+      .exec();
+
+    if (!updatedUser) {
+      throw new NotFoundException('User not found');
+    }
 
     return {
       status: 200,
@@ -72,7 +92,6 @@ export class UserService {
       data: updatedUser,
     };
   }
-
   async remove(id: string) {
     const user = await this.userModel.findById(id).exec();
     if (!user) {

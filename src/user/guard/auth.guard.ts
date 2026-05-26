@@ -19,11 +19,12 @@ export class AuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
-    const roles = this.reflector.get(Roles, context.getHandler());
+    const roles = this.reflector.getAllAndOverride<string[]>('roles', [
+      context.getHandler(),
+      context.getClass(),
+    ]);
 
-    if (!roles) {
-      return true;
-    }
+    console.log('Roles required for this route:', roles);
 
     if (!token) {
       throw new UnauthorizedException();

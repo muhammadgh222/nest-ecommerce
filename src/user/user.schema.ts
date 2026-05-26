@@ -9,7 +9,13 @@ export class User {
   name!: string;
   @Prop({ type: String, required: true, unique: true })
   email!: string;
-  @Prop({ type: String, required: true, minlength: 6, maxlength: 20 })
+  @Prop({
+    type: String,
+    required: true,
+    minlength: 6,
+    maxlength: 100,
+    select: false,
+  })
   password!: string;
   @Prop({ type: String, enum: ['user', 'admin'], default: 'user' })
   role?: string;
